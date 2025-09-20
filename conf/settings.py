@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
     #!APPS
     'todo',
+    'user',
 ]
 
 MIDDLEWARE = [
