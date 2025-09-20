@@ -5,4 +5,4 @@ from .models import Task
 class TaskAdmin(admin.ModelAdmin):
   list_display = ('title', 'completed', 'description')
   list_editable = ('completed', )
-  list_filter = ('id',)
+  list_filter = ('id', 'user')
