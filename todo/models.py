@@ -8,6 +8,7 @@ class Task(models.Model):
   description = models.TextField(null=True, blank=True)
   completed = models.BooleanField(default=False)
   created_at = models.DateTimeField(auto_now_add=True)
+  priority = models.IntegerField(choices=[(1, 'Low'), (2, 'Medium'), (3, 'High')], default=2)
 
   def __str__(self):
         return self.title
