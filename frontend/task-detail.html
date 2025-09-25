@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали задачи</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Детали задачи</h1>
+            <div class="user-info">
+                <button onclick="goBack()" class="btn-secondary">← Назад</button>
+                <button onclick="logout()" class="btn-secondary">Выйти</button>
+            </div>
+        </header>
+
+        <div id="task-detail" class="task-detail">
+            <div class="task-header">
+                <h2 id="task-title"></h2>
+                <span id="task-status" class="status"></span>
+            </div>
+
+            <div class="task-meta">
+                <span>Создана: <span id="task-created"></span></span>
+                <span>Обновлена: <span id="task-updated"></span></span>
+            </div>
+
+            <div class="task-description">
+                <h3>Описание:</h3>
+                <p id="task-description-text"></p>
+            </div>
+
+            <div class="task-actions">
+                <button onclick="toggleTaskCompletion()" id="toggle-btn" class="btn-primary"></button>
+                <button onclick="editTask()" class="btn-secondary">Редактировать</button>
+                <button onclick="deleteTask()" class="btn-danger">Удалить</button>
+            </div>
+
+            <div id="edit-form" class="edit-form" style="display: none;">
+                <h3>Редактирование задачи</h3>
+                <input type="text" id="edit-title" class="form-input">
+                <textarea id="edit-description" class="form-textarea"></textarea>
+                <div class="edit-actions">
+                    <button onclick="saveTask()" class="btn-primary">Сохранить</button>
+                    <button onclick="cancelEdit()" class="btn-secondary">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

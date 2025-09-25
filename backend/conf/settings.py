@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     #! Django conf
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
 
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -42,6 +44,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
 
 ROOT_URLCONF = 'conf.urls'
 
@@ -144,3 +148,14 @@ SIMPLE_JWT = {
 
 # Разрешаем передачу cookies для аутентификации
 CORS_ALLOW_CREDENTIALS = True
+
+# Настройки CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React dev server
+    "http://127.0.0.1:3000",  # React dev server
+    "http://localhost:8080",  # Vue dev server
+    "http://127.0.0.1:8080",  # Vue dev server
+    "http://localhost:5500",  # Live Server (VS Code)
+    "http://127.0.0.1:5500",  # Live Server (VS Code)
+    "http://localhost:8000",  # Django dev server (если фронт отдается из Django)
+]

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Todo List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Мой Список Дел</h1>
+            <div class="user-info">
+                <span id="username-display"></span>
+                <button onclick="logout()" class="btn-secondary">Выйти</button>
+            </div>
+        </header>
+
+        <form id="task-form" class="task-form">
+            <input type="text" id="task-input" placeholder="Новая задача..." required>
+            <textarea id="task-description" placeholder="Описание задачи..."></textarea>
+            <button type="submit" class="btn-primary">Добавить задачу</button>
+        </form>
+
+        <div class="filters">
+            <button onclick="filterTasks('all')" class="btn-filter active">Все</button>
+            <button onclick="filterTasks('active')" class="btn-filter">Активные</button>
+            <button onclick="filterTasks('completed')" class="btn-filter">Выполненные</button>
+        </div>
+
+        <ul id="task-list" class="task-list"></ul>
+
+        <div class="stats">
+            <span id="tasks-count">Всего задач: 0</span>
+            <span id="completed-count">Выполнено: 0</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

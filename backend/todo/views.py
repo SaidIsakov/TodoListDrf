@@ -27,6 +27,7 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TodoSerializer
     # Разрешаем доступ только аутентифицированным пользователям
     # и только владельцам для редактирования/удаления
+
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
 
