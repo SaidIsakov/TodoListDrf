@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Профиль пользователя</h1>
+            <div class="user-info">
+                <button onclick="goToTodos()" class="btn-secondary">← К задачам</button>
+                <button onclick="logout()" class="btn-secondary">Выйти</button>
+            </div>
+        </header>
+
+        <div class="profile-content">
+            <div class="profile-info">
+                <h2>Информация о профиле</h2>
+                <div class="info-item">
+                    <label>Имя пользователя:</label>
+                    <span id="profile-username">Загрузка...</span>
+                </div>
+                <div class="info-item">
+                    <label>Email:</label>
+                    <span id="profile-email">Загрузка...</span>
+                </div>
+                <div class="info-item">
+                    <label>Дата регистрации:</label>
+                    <span id="profile-date-joined">Загрузка...</span>
+                </div>
+                <div class="info-item">
+                    <label>Статистика задач:</label>
+                    <span id="profile-stats">Загрузка...</span>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <h2>Действия</h2>
+                <button onclick="showChangePassword()" class="btn-primary">Сменить пароль</button>
+                <button onclick="showEditProfile()" class="btn-secondary">Редактировать профиль</button>
+            </div>
+
+            <!-- Форма смены пароля -->
+            <div id="change-password-form" class="auth-form" style="display: none;">
+                <h3>Смена пароля</h3>
+                <form id="password-form">
+                    <div class="form-group">
+                        <label for="current-password">Текущий пароль:</label>
+                        <input type="password" id="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Новый пароль:</label>
+                        <input type="password" id="new-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Подтвердите новый пароль:</label>
+                        <input type="password" id="confirm-password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Сменить пароль</button>
+                        <button type="button" onclick="hideChangePassword()" class="btn-secondary">Отмена</button>
+                    </div>
+                </form>
+                <div id="password-message" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- Форма редактирования профиля -->
+            <div id="edit-profile-form" class="auth-form" style="display: none;">
+                <h3>Редактирование профиля</h3>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="edit-username">Имя пользователя:</label>
+                        <input type="text" id="edit-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-email">Email:</label>
+                        <input type="email" id="edit-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-first-name">Имя:</label>
+                        <input type="text" id="edit-first-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-last-name">Фамилия:</label>
+                        <input type="text" id="edit-last-name">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Сохранить</button>
+                        <button type="button" onclick="hideEditProfile()" class="btn-secondary">Отмена</button>
+                    </div>
+                </form>
+                <div id="profile-message" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- Статистика задач -->
+            <div class="task-statistics">
+                <h2>Статистика задач</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-tasks">0</div>
+                        <div class="stat-label">Всего задач</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completed-tasks">0</div>
+                        <div class="stat-label">Выполнено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="active-tasks">0</div>
+                        <div class="stat-label">Активных</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completion-rate">0%</div>
+                        <div class="stat-label">Процент выполнения</div>
+                    </div>
+                </div>
+
+                <div class="recent-tasks">
+                    <h3>Последние задачи</h3>
+                    <div id="recent-tasks-list" class="recent-tasks-list">
+                        <!-- Задачи будут загружены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

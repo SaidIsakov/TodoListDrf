@@ -1,8 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# class Category(models.Model):
+#   title = models.CharField(max_length=100)
+#   color = models.CharField(max_length=7, default='#007bff')
+#   user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+# class Tag(models.Model):
+#     name = models.CharField(max_length=50)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
 class Task(models.Model):
   """ Модель Задачи """
+  # category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+  # tags = models.ManyToManyField(Tag, blank=True)
+  # priority = models.CharField(max_length=10, choices=[
+  #       ('low', 'Низкий'),
+  #       ('medium', 'Средний'),
+  #       ('high', 'Высокий')
+  #   ], default='medium')
+  # due_date = models.DateTimeField(null=True, blank=True)
   user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
   title = models.CharField(max_length=200)
   description = models.TextField(null=True, blank=True)

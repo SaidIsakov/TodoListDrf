@@ -2,7 +2,9 @@
 const API_BASE = 'http://localhost:8001/api/v1';
 const REGISTER_URL = `${API_BASE}/user/registration/`;
 const LOGIN_URL = `${API_BASE}/user/login/`;
+const PROFILE_URL = `${API_BASE}/user/profile/`;
 const TASKS_URL = `${API_BASE}/todos/`;
+const CHANGE_PASSWORD_URL = `${API_BASE}/user/change-password/`;
 
 // Токен авторизации
 let authToken = localStorage.getItem('authToken');
@@ -11,7 +13,8 @@ let currentUser = JSON.parse(localStorage.getItem('currentUser'));
 // Проверка авторизации при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     if (window.location.pathname.endsWith('todo.html') ||
-        window.location.pathname.endsWith('task-detail.html')) {
+        window.location.pathname.endsWith('task-detail.html') ||
+        window.location.pathname.endsWith('profile.html')) {
         checkAuth();
     }
 
@@ -22,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (window.location.pathname.endsWith('task-detail.html')) {
         loadTaskDetail();
+    }
+
+    if (window.location.pathname.endsWith('profile.html')) {
+        loadProfile();
     }
 });
 
@@ -59,15 +66,8 @@ document.getElementById('login-form')?.addEventListener('submit', async function
         const data = await response.json();
 
         if (response.ok) {
-            // В зависимости от структуры ответа вашего API
-            // Вариант 1: если токен в поле 'access'
-            authToken = data.access || data.token;
-
-            // Сохраняем данные пользователя
-            currentUser = {
-                username: username,
-                // Добавьте другие поля, которые возвращает ваш API
-            };
+            authToken = data.access;
+            currentUser = { username: username };
 
             localStorage.setItem('authToken', authToken);
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -115,7 +115,6 @@ document.getElementById('register-form-element')?.addEventListener('submit', asy
             showLogin();
             showError('Регистрация успешна! Теперь войдите в систему.');
         } else {
-            // Обработка ошибок валидации Django
             let errorMessage = 'Ошибка регистрации';
             if (data.username) errorMessage = data.username[0];
             else if (data.email) errorMessage = data.email[0];
@@ -166,7 +165,6 @@ function renderTasks(tasks) {
 
     taskList.innerHTML = '';
 
-    // Проверяем, что tasks - массив
     if (!Array.isArray(tasks)) {
         console.error('Ожидался массив задач, получено:', tasks);
         return;
@@ -294,6 +292,302 @@ function renderTaskDetail(task) {
     toggleBtn.className = task.completed ? 'btn-secondary' : 'btn-primary';
 }
 
+// ========== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ==========
+
+function viewProfile() {
+    window.location.href = 'profile.html';
+}
+
+function goToTodos() {
+    window.location.href = 'todo.html';
+}
+
+// Загрузка профиля
+async function loadProfile() {
+    try {
+        updateUserDisplay();
+        await loadUserProfile();
+        await loadTaskStatistics();
+    } catch (error) {
+        console.error('Ошибка загрузки профиля:', error);
+    }
+}
+
+// Загрузка данных пользователя
+async function loadUserProfile() {
+    try {
+        const response = await fetch(PROFILE_URL, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const userData = await response.json();
+            displayUserProfile(userData);
+        } else {
+            displayFallbackProfile();
+        }
+    } catch (error) {
+        displayFallbackProfile();
+    }
+}
+
+// Отображение данных пользователя
+function displayUserProfile(userData) {
+    document.getElementById('profile-username').textContent = userData.username || currentUser?.username || 'Не указано';
+    document.getElementById('profile-email').textContent = userData.email || currentUser?.email || 'Не указано';
+    document.getElementById('profile-date-joined').textContent =
+        userData.date_joined ? formatDate(userData.date_joined) : 'Неизвестно';
+
+    if (document.getElementById('edit-username')) {
+        document.getElementById('edit-username').value = userData.username || currentUser?.username || '';
+        document.getElementById('edit-email').value = userData.email || currentUser?.email || '';
+    }
+}
+
+// Fallback профиль
+function displayFallbackProfile() {
+    document.getElementById('profile-username').textContent = currentUser?.username || 'Не указано';
+    document.getElementById('profile-email').textContent = currentUser?.email || 'Не указано';
+    document.getElementById('profile-date-joined').textContent = 'Неизвестно';
+
+    const message = document.createElement('div');
+    message.className = 'message info';
+    message.textContent = 'Некоторые функции профиля могут быть ограничены';
+    document.querySelector('.profile-info').appendChild(message);
+}
+
+// Загрузка статистики задач
+async function loadTaskStatistics() {
+    try {
+        const response = await fetch(TASKS_URL, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const tasks = await response.json();
+            displayTaskStatistics(tasks);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки статистики:', error);
+    }
+}
+
+// Отображение статистики задач
+function displayTaskStatistics(tasks) {
+    if (!Array.isArray(tasks)) {
+        document.getElementById('profile-stats').textContent = 'Ошибка загрузки статистики';
+        return;
+    }
+
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.completed).length;
+    const activeTasks = totalTasks - completedTasks;
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    document.getElementById('total-tasks').textContent = totalTasks;
+    document.getElementById('completed-tasks').textContent = completedTasks;
+    document.getElementById('active-tasks').textContent = activeTasks;
+    document.getElementById('completion-rate').textContent = completionRate + '%';
+
+    document.getElementById('profile-stats').textContent =
+        `Всего задач: ${totalTasks}, Выполнено: ${completedTasks}`;
+
+    displayRecentTasks(tasks);
+}
+
+// Отображение последних задач
+function displayRecentTasks(tasks) {
+    const recentTasksList = document.getElementById('recent-tasks-list');
+    if (!recentTasksList) return;
+
+    const sortedTasks = [...tasks].sort((a, b) =>
+        new Date(b.created_at) - new Date(a.created_at)
+    ).slice(0, 5);
+
+    if (sortedTasks.length === 0) {
+        recentTasksList.innerHTML = '<p>Нет задач</p>';
+        return;
+    }
+
+    recentTasksList.innerHTML = sortedTasks.map(task => `
+        <div class="recent-task-item ${task.completed ? 'completed' : ''}" onclick="viewTaskDetail(${task.id})" style="cursor: pointer;">
+            <div class="recent-task-title">${task.title}</div>
+            <div class="recent-task-date">${formatDate(task.created_at)}</div>
+        </div>
+    `).join('');
+}
+
+// Управление формами профиля
+function showChangePassword() {
+    document.getElementById('change-password-form').style.display = 'block';
+    document.getElementById('edit-profile-form').style.display = 'none';
+    hideMessage('password-message');
+}
+
+function hideChangePassword() {
+    document.getElementById('change-password-form').style.display = 'none';
+    clearPasswordForm();
+}
+
+function showEditProfile() {
+    document.getElementById('edit-profile-form').style.display = 'block';
+    document.getElementById('change-password-form').style.display = 'none';
+    hideMessage('profile-message');
+}
+
+function hideEditProfile() {
+    document.getElementById('edit-profile-form').style.display = 'none';
+}
+
+function clearPasswordForm() {
+    document.getElementById('current-password').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+}
+
+function hideMessage(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.display = 'none';
+        element.className = 'message';
+    }
+}
+
+function showMessage(elementId, message, type = 'success') {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.className = `message ${type}`;
+        element.style.display = 'block';
+    }
+}
+
+// Обработчик формы смены пароля
+document.getElementById('password-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const oldPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const newPasswordConfirm = document.getElementById('confirm-password').value;
+
+    // Валидация
+    if (!oldPassword || !newPassword || !newPasswordConfirm) {
+        showMessage('password-message', 'Все поля обязательны для заполнения', 'error');
+        return;
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+        showMessage('password-message', 'Новые пароли не совпадают', 'error');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showMessage('password-message', 'Пароль должен содержать минимум 6 символов', 'error');
+        return;
+    }
+
+    if (oldPassword === newPassword) {
+        showMessage('password-message', 'Новый пароль должен отличаться от текущего', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(CHANGE_PASSWORD_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                old_password: oldPassword,
+                new_password: newPassword,
+                new_password_confirm: newPasswordConfirm
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('password-message', 'Пароль успешно изменен!', 'success');
+            clearPasswordForm();
+
+            setTimeout(() => {
+                hideChangePassword();
+            }, 2000);
+
+        } else {
+            let errorMessage = 'Ошибка смены пароля';
+
+            if (data.old_password) {
+                errorMessage = data.old_password[0];
+            } else if (data.new_password) {
+                errorMessage = data.new_password[0];
+            } else if (data.detail) {
+                errorMessage = data.detail;
+            } else if (data.non_field_errors) {
+                errorMessage = data.non_field_errors[0];
+            }
+
+            showMessage('password-message', errorMessage, 'error');
+        }
+    } catch (error) {
+        showMessage('password-message', 'Ошибка сети. Проверьте подключение к интернету', 'error');
+    }
+});
+
+// Обработчик формы редактирования профиля
+document.getElementById('profile-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('edit-username').value;
+    const email = document.getElementById('edit-email').value;
+
+    if (!username.trim()) {
+        showMessage('profile-message', 'Имя пользователя обязательно', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(PROFILE_URL, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username.trim(),
+                email: email.trim()
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('profile-message', 'Профиль успешно обновлен', 'success');
+            currentUser = { ...currentUser, ...data };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            setTimeout(() => {
+                hideEditProfile();
+                loadUserProfile();
+                updateUserDisplay();
+            }, 1500);
+        } else {
+            const errorMessage = data.username ? data.username[0] :
+                               data.email ? data.email[0] :
+                               data.detail || 'Ошибка обновления профиля';
+            showMessage('profile-message', errorMessage, 'error');
+        }
+    } catch (error) {
+        showMessage('profile-message', 'Функция редактирования профиля временно недоступна', 'info');
+    }
+});
+
 // ========== ОБЩИЕ ФУНКЦИИ ==========
 
 function checkAuth() {
@@ -352,7 +646,6 @@ function filterTasks(filter) {
     const buttons = document.querySelectorAll('.btn-filter');
     buttons.forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
-
     loadTasks();
 }
 
@@ -423,7 +716,7 @@ async function deleteTask(taskId) {
     }
 }
 
-// Функции для детальной страницы (дополнительные)
+// Функции для детальной страницы
 async function toggleTaskCompletion() {
     const urlParams = new URLSearchParams(window.location.search);
     const taskId = urlParams.get('id');
@@ -431,7 +724,6 @@ async function toggleTaskCompletion() {
     if (!taskId) return;
 
     try {
-        // Получаем текущие данные задачи
         const response = await fetch(`${TASKS_URL}${taskId}/`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -441,8 +733,6 @@ async function toggleTaskCompletion() {
         if (!response.ok) throw new Error('Ошибка загрузки задачи');
 
         const task = await response.json();
-
-        // Меняем статус
         await toggleTask(taskId, task.completed);
     } catch (error) {
         console.error('Ошибка:', error);
@@ -452,7 +742,6 @@ async function toggleTaskCompletion() {
 function editTask() {
     document.getElementById('edit-form').style.display = 'block';
 
-    // Заполняем форму текущими значениями
     const title = document.getElementById('task-title').textContent;
     const description = document.getElementById('task-description-text').textContent;
 

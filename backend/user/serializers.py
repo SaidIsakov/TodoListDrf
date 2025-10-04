@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from todo.serializers import TodoSerializer
+from django.contrib.auth.password_validation import validate_password
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
   password = serializers.CharField(write_only=True)
@@ -61,7 +62,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'username',
-            'email',  # Добавляем email
+            'email',
             'first_name',
             'last_name',
             'todos_count',
@@ -81,3 +82,44 @@ class UserProfileSerializer(serializers.ModelSerializer):
   def get_pending_todos_count(self, obj):
     """Количество задач в работе и ожидании"""
     return obj.tasks.exclude(completed=True).count()
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+  """Сериализатор для обновления профиля пользователя"""
+  class Meta:
+    model = User
+    fields = ('username', 'email')
+
+  def update(self, instance, validated_data):
+    for attrs, value in validated_data.items():
+      setattr(instance, attrs, value)
+    instance.save()
+    return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """ Сериализатор для смены пароля """
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True,
+        validators=[validate_password]
+    )
+    new_password_confirm = serializers.CharField(required=True, write_only=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError('Старый пароль неверен')
+        return value
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password_confirm']:
+            raise serializers.ValidationError({
+                'new_password': 'Пароли не совпадают'
+            })
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user

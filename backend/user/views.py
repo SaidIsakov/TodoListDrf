@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import login
-from .serializers import UserRegistrationSerializer, LoginSerializer, UserProfileSerializer
+from .serializers import UserRegistrationSerializer, LoginSerializer, UserProfileSerializer, UserUpdateSerializer,ChangePasswordSerializer
 from django.contrib.auth.models import User
 
 class RegisterView(generics.CreateAPIView):
@@ -46,14 +46,37 @@ class LoginView(generics.GenericAPIView):
 
 
 class UserProfileView(generics.RetrieveAPIView):
-    """
-    View для получения информации о конкретном пользователе
-    """
-    serializer_class = UserProfileSerializer
+  """
+  Просмотр и обновление профиля
+  """
+  serializer_class = UserProfileSerializer
+  permission_classes = [permissions.IsAuthenticated]
+
+  def get_object(self):
+      return self.request.user
+
+  def get_serializer_class(self):
+      if self.request.method == 'PUT' or self.request.method == 'PATCH':
+          return UserUpdateSerializer
+      return UserProfileSerializer
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+    """ Смена пароля"""
+    serializer_class = ChangePasswordSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user
 
-    def get_queryset(self):
-        return User.objects.prefetch_related('tasks')
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({
+            'message': 'Password changed successfully'
+        }, status=status.HTTP_200_OK)
