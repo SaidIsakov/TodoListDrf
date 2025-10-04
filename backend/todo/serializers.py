@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Task
+from .models import Task, Category
 from django.contrib.auth.models import User
 
 class TodoSerializer(serializers.ModelSerializer):
@@ -18,3 +18,8 @@ class TodoSerializer(serializers.ModelSerializer):
             'user',         # Владелец
             'user_id'
         ]
+
+class CategoryListSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Category
+    fields = ['title', 'color', 'user']

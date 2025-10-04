@@ -12,7 +12,7 @@ class Tag(models.Model):
 
 class Task(models.Model):
   """ Модель Задачи """
-  category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+  category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks')
   tags = models.ManyToManyField(Tag, blank=True)
   priority = models.CharField(max_length=10, choices=[
         ('low', 'Низкий'),

@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions, viewsets
-from .models import Task
-from .serializers import TodoSerializer
+from .models import Task, Category
+from .serializers import TodoSerializer, CategoryListSerializer
 from .permissions import IsOwnerOrReadOnly
 
 
@@ -23,11 +23,11 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     View для получения, обновления и удаления конкретной задачи.
     """
-    queryset = Task.objects.all()  # Все задачи (фильтрация в permissions)
+    queryset = Task.objects.all()
     serializer_class = TodoSerializer
-    # Разрешаем доступ только аутентифицированным пользователям
-    # и только владельцам для редактирования/удаления
-
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
+class CategoryListView(generics.ListAPIView):
+  queryset = Category.objects.all()
+  serializer_class = CategoryListSerializer
 
